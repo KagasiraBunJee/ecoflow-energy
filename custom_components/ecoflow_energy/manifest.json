@@ -1,0 +1,15 @@
+{
+    "domain": "ecoflow_energy",
+    "name": "Ecoflow Energy",
+    "version": "1.0.0",
+    "iot_class": "cloud_push",
+    "config_flow": true,
+    "single_config_entry": true,
+    "dependencies": ["mqtt"],
+    "requirements": [
+      "paho-mqtt==1.6.1",
+      "protobuf>=4.23.0",
+      "jsonpath-ng>=1.6.1",
+      "dacite==1.8.1"
+    ]
+  }
