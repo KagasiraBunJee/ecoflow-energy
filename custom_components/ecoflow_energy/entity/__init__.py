@@ -4,8 +4,8 @@ from collections.abc import Mapping
 import logging
 from typing import Any, Self
 
-from config.custom_components.ecoflow_energy.device.breaker import BreakerMode
-from config.custom_components.ecoflow_energy.device.command import BaseEntityCommand, CommandTarget
+from ..device.breaker import BreakerMode
+from ..device.command import BaseEntityCommand, CommandTarget
 
 from ..const import ECOFLOW_DOMAIN
 from ..device import BaseDevice, EntityUpdateCoordinator, DataValue
