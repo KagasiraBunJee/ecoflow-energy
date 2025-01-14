@@ -1,7 +1,7 @@
 {
     "domain": "ecoflow_energy",
     "name": "Ecoflow Energy",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "iot_class": "cloud_push",
     "config_flow": true,
     "single_config_entry": true,

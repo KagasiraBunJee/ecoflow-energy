@@ -1,7 +1,7 @@
 import logging
 
-from config.custom_components.ecoflow_energy.coordinator import EcoflowCoordinatorDataUpdateCoordinator
-from config.custom_components.ecoflow_energy.device import BaseDevice
+from .coordinator import EcoflowCoordinatorDataUpdateCoordinator
+from .device import BaseDevice
 from homeassistant.const import EntityCategory
 from .entity import BaseSwitch
 from .device.command import BaseEntityCommand, CommandId, CommandSet

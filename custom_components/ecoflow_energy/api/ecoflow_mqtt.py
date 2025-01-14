@@ -7,7 +7,7 @@ import json
 import logging
 import ssl
 from typing import Any
-from config.custom_components.ecoflow_energy.device.command import BaseEntityCommand, BaseEntityCommandResponse
+from ..device.command import BaseEntityCommand, BaseEntityCommandResponse
 from homeassistant.components.mqtt.async_client import AsyncMQTTClient
 
 
