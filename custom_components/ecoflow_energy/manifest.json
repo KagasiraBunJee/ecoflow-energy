@@ -1,11 +1,16 @@
 {
     "domain": "ecoflow_energy",
     "name": "Ecoflow Energy",
-    "version": "1.0.1",
+    "version": "1.0.3",
     "iot_class": "cloud_push",
     "config_flow": true,
+    "codeowners": [
+      "@KagasiraBunJee"
+    ],
     "single_config_entry": true,
+    "issue_tracker": "https://github.com/KagasiraBunJee/ecoflow-energy/issues",
     "dependencies": ["mqtt"],
+    "documentation": "https://github.com/KagasiraBunJee/ecoflow-energy",
     "requirements": [
       "paho-mqtt==1.6.1",
       "protobuf>=4.23.0",
