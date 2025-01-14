@@ -52,9 +52,12 @@ class EcoFlowApiClient:
         resp = await self.client.get_data(MQTT_DATA)
         return self.__fill_mqtt_data(resp["data"])
 
-    def set_mqtt_creds(self, creds: dict):
-        creds["port"] = int(creds["port"])
-        self.mqtt_info = from_dict(data_class=EcoflowMqttInfo, data=creds)
+    def set_mqtt_creds(self, creds):
+        if isinstance(creds, dict):
+            creds["port"] = int(creds["port"])
+            self.mqtt_info = from_dict(data_class=EcoflowMqttInfo, data=creds)
+        else:
+            self.mqtt_info = creds
 
     def start(self):
         self._init_mqtt()
