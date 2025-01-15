@@ -9,7 +9,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 
 from . import BaseDevice, DataValue, EntitySensorKey
 
-from ..sensor import WattHourSensorEntity, InfoSensor, RemainSensorEntity, LevelSensorEntity, AmpSensorEntity, WattsSensorEntity, TempSensorEntity
+from ..sensor import InfoSensor, RemainSensorEntity, LevelSensorEntity, AmpSensorEntity, WattsSensorEntity, TempSensorEntity
 from ..switch import EnableSwitch
 from ..select import BreakerModeSelect
 
@@ -68,9 +68,6 @@ class PowerType(IntEnum):
         return self == PowerType.GRID
 
 class SmartHomePanel(BaseDevice):
-    def __init__(self, sn: str, name: str, status: int, api_client) -> None:
-        super().__init__(sn, name, status, api_client)
-
     def calculate_data(self):
         self._build_structure()
 
@@ -78,9 +75,6 @@ class SmartHomePanel(BaseDevice):
         await super().connect_mqtt(hass)
         async_dispatcher_connect(hass, f"device_update_{self.sn}", self._handle_mqtt_message)
         self.api_client.mqtt_client.subscribe_to_device(self.sn, "quota")
-
-    def configure(self, hass):
-        super().configure(hass)
 
     async def _handle_mqtt_message(self, message):
         """Handle incoming MQTT message specifically for power calculation."""
@@ -266,21 +260,21 @@ class SmartHomePanel(BaseDevice):
         for i in range(breakers_count):
             base_key = f"{EntitySensorKey.BREAKER}{i}"
             sensors.extend([
-                WattHourSensorEntity(self, base_key),
+                WattsSensorEntity(self, base_key),
                 InfoSensor(self, f"{base_key}_priority"),
                 InfoSensor(self, f"{base_key}_mode"),
                 InfoSensor(self, f"{base_key}_source"),
                 AmpSensorEntity(self, f"{base_key}_cur_limit"),
             ])
-        sensors.append(WattHourSensorEntity(self, EntitySensorKey.SHP_GRID))
+        sensors.append(WattsSensorEntity(self, EntitySensorKey.SHP_GRID))
         sensors.append(WattsSensorEntity(self, f"{EntitySensorKey.SHP_GRID}_max_output"))
 
         batteries_count = self.data.mapped_data["sensors"][EntitySensorKey.BATTERIES_COUNT]
         for i in range(batteries_count):
             base_key = f"{EntitySensorKey.BATTERY}{i + 1}"
             sensors.extend([
-                WattHourSensorEntity(self, f"{base_key}_input"), # battery input
-                WattHourSensorEntity(self, f"{base_key}_output"), # battery output
+                WattsSensorEntity(self, f"{base_key}_input"), # battery input
+                WattsSensorEntity(self, f"{base_key}_output"), # battery output
                 RemainSensorEntity(self, f"{base_key}_discharge_time"), # battery discharge time
                 RemainSensorEntity(self, f"{base_key}_charge_time"), # battery charge time
                 LevelSensorEntity(self, f"{base_key}"), # battery level

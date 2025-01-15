@@ -23,9 +23,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     client = EcoFlowApiClient(keys["apikey"], keys["secret"], hass)
     if "creds" not in entry.data:
         try:
-            _LOGGER.info("Creds not found fetching new one")
             creds = await client.login()
             entry.data["creds"] = creds
+            new_data = { "keys": keys, "creds": creds }
+            hass.config_entries.async_update_entry(entry, data=new_data)
+            client.set_mqtt_creds(creds)
         except Exception as error:
             # ConfigEntryNotReady exception is the one for HA to put it to retry to initiate
             raise ConfigEntryNotReady("Timeout while connecting to ecoflow server") from error
@@ -50,8 +52,5 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
     hass.data[DOMAIN]["coordinator"] = coordinator
-    # entry.runtime_data = coordinator
-    # This creates each HA object for each platform your device requires.
-    # It's done by calling the `async_setup_entry` function in each platform module.
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True

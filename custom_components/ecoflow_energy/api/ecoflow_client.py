@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from enum import StrEnum
 import logging
 import secrets
 from dataclasses import dataclass
@@ -48,16 +47,15 @@ class EcoFlowApiClient:
         self.mqtt_data = dict[str, DeviceData]()
         self.hass = hass
 
-    async def login(self) -> EcoflowMqttInfo:
+    async def login(self) -> dict:
         resp = await self.client.get_data(MQTT_DATA)
-        return self.__fill_mqtt_data(resp["data"])
+        data = { "client_id": self.__client_id() }
+        data.update(resp["data"])
+        return data
 
     def set_mqtt_creds(self, creds):
-        if isinstance(creds, dict):
-            creds["port"] = int(creds["port"])
-            self.mqtt_info = from_dict(data_class=EcoflowMqttInfo, data=creds)
-        else:
-            self.mqtt_info = creds
+        creds["port"] = int(creds["port"])
+        self.__fill_mqtt_data(creds)
 
     def start(self):
         self._init_mqtt()
@@ -107,7 +105,7 @@ class EcoFlowApiClient:
             _LOGGER.error(f"Error getting device {sn} info: {error}")
 
     def __client_id(self):
-        return "historic_mqttx_2f8bc4fa"
+        return f"energy_mqttx_{secrets.token_hex(4)}"
 
     def __fill_mqtt_data(self, data) -> EcoflowMqttInfo:
         url = data["url"]
@@ -115,10 +113,11 @@ class EcoFlowApiClient:
         protocol = data["protocol"]
         username = data["certificateAccount"]
         password = data["certificatePassword"]
+        client_id = data["client_id"]
         self.mqtt_info = EcoflowMqttInfo(url=url,
                                          port=port,
                                          protocol=protocol,
                                          username=username,
                                          password=password,
-                                         client_id=self.__client_id())
+                                         client_id=client_id)
         return self.mqtt_info
