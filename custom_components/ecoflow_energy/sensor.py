@@ -18,26 +18,23 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         entities.extend(device._sensors())
     async_add_entities(entities)
 
-class WattHourSensorEntity(BaseSensor):
-    _attr_device_class = SensorDeviceClass.ENERGY
-    _attr_native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
-    _attr_state_class = SensorStateClass.TOTAL
-
-    def value(self, value):
-        super().value(round(value, 2))
-
 class RemainSensorEntity(BaseSensor):
     _attr_device_class = SensorDeviceClass.DURATION
     _attr_native_unit_of_measurement = UnitOfTime.MINUTES
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_value = 0
 
+    def set_entity_value(self, value):
+        self._attr_native_value = round(value)
+
 class WattsSensorEntity(BaseSensor):
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_device_class = SensorDeviceClass.POWER
     _attr_native_unit_of_measurement = UnitOfPower.WATT
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_value = 0
+
+    def set_entity_value(self, value):
+        self._attr_native_value = round(value)
 
     def value(self, value):
         super().value(round(value, 2))

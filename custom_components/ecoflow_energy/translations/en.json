@@ -1,0 +1,14 @@
+{
+    "title": "EcoFlow-Cloud",
+    "config": {
+      "step": {
+        "user": {
+          "title": "Enter developer api credentials",
+          "data": {
+            "apikey": "Ecoflow Access Key",
+            "secret": "Ecoflow Secret Key"
+          }
+        }
+    }
+  }
+}
