@@ -11,3 +11,11 @@ This is the pet project of mine. In my region there are scheduled (sometimes uns
 - Switching batteries charging (Smart Home Panel supports connects 2 batteries)
 - Changing breakers load modes (Auto, Manual). In Manual mode you can select source of load of any breaker (Only grid, only battery, or turn off)
 - Exported almost all data as sensors (battery percentage, breakers load)
+
+## Installation
+
+- Install as a custom repository via HACS
+- Manually download and extract to the custom_components directory
+
+Once installed, use Add Integration -> Ecoflow Energy.
+
