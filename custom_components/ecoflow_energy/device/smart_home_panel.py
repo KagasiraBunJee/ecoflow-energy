@@ -9,7 +9,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 
 from . import BaseDevice, DataValue, EntitySensorKey
 
-from ..sensor import InfoSensor, RemainSensorEntity, LevelSensorEntity, AmpSensorEntity, WattsSensorEntity, TempSensorEntity
+from ..sensor import InfoSensor, RemainSensorEntity, LevelSensorEntity, AmpSensorEntity, WattsSensorEntity, TempSensorEntity, BaseSensor
 from ..switch import EnableSwitch
 from ..select import BreakerModeSelect
 
@@ -56,7 +56,24 @@ battery_suffixes = [
     "_power_rate",
     "_cur_limit",
     "_bat_temp",
-    "_charge_switch"
+    "_charge_switch",
+    ""
+]
+
+battery_suffixes_and_classes = [
+    ("_input", WattsSensorEntity),
+    ("_output", WattsSensorEntity),
+    ("_connected", InfoSensor),
+    ("_enabled", InfoSensor),
+    ("_grid_charging", InfoSensor),
+    ("_mppt_charging", InfoSensor),
+    ("_ac_open", InfoSensor),
+    ("_discharge_time", RemainSensorEntity),
+    ("_charge_time", RemainSensorEntity),
+    ("_power_rate", WattsSensorEntity),
+    ("_cur_limit", AmpSensorEntity),
+    ("_bat_temp", TempSensorEntity),
+    ("", LevelSensorEntity)
 ]
 
 class PowerType(IntEnum):
@@ -86,7 +103,7 @@ class SmartHomePanel(BaseDevice):
 
             value_str = message.payload.decode("utf-8", errors='ignore')
             value = json.loads(value_str)
-
+            _LOGGER.info(f"sub resp: {value}")
             if topic_command_key != "set_reply":
                 if "params" in value:
                     params = value["params"]
@@ -208,6 +225,7 @@ class SmartHomePanel(BaseDevice):
     def _build_structure(self):
         if self.data.response_data is not None:
             local_data = self.data.response_data
+            _LOGGER.info(local_data)
 
             breakers_controls_info = local_data[http_breaker_ctrls_key]
             breaker_names_data = local_data["loadChInfo"]["info"]
@@ -253,9 +271,9 @@ class SmartHomePanel(BaseDevice):
             self._parse_battery_info(batteries_info)
 
 
-    def _sensors(self):
+    def _sensors(self) -> list[BaseSensor]:
         sensors = list()
-
+        all_data = self.data.mapped_data["sensors"]
         # setup breakers sensors
         for i in range(breakers_count):
             base_key = f"{EntitySensorKey.BREAKER}{i}"
@@ -272,22 +290,12 @@ class SmartHomePanel(BaseDevice):
         batteries_count = self.data.mapped_data["sensors"][EntitySensorKey.BATTERIES_COUNT]
         for i in range(batteries_count):
             base_key = f"{EntitySensorKey.BATTERY}{i + 1}"
-            sensors.extend([
-                WattsSensorEntity(self, f"{base_key}_input"), # battery input
-                WattsSensorEntity(self, f"{base_key}_output"), # battery output
-                RemainSensorEntity(self, f"{base_key}_discharge_time"), # battery discharge time
-                RemainSensorEntity(self, f"{base_key}_charge_time"), # battery charge time
-                LevelSensorEntity(self, f"{base_key}"), # battery level
-                WattsSensorEntity(self, f"{base_key}_power_rate"), # battery power rate
-
-                InfoSensor(self, f"{base_key}_connected"), # battery connected to shp
-                InfoSensor(self, f"{base_key}_enabled"), # batter enabled in shp
-                InfoSensor(self, f"{base_key}_grid_charging"), # is charging from grid
-                InfoSensor(self, f"{base_key}_mppt_charging"), # is charging from MPPT
-                InfoSensor(self, f"{base_key}_ac_open"), # is AC open from battery
-                AmpSensorEntity(self, f"{base_key}_cur_limit"),
-                TempSensorEntity(self, f"{base_key}_bat_temp")
-            ])
+            for suffix, cls in battery_suffixes_and_classes:
+                sensor_key = f"{base_key}{suffix}"
+                _LOGGER.info(f"getting {sensor_key}")
+                if sensor_key in self.data.mapped_data["sensors"]:
+                    sensor = cls(self, sensor_key)
+                    sensors.append(sensor)
 
         return sensors
 

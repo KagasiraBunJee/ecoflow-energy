@@ -39,6 +39,7 @@ class MQTTClient:
         self.__client: AsyncMQTTClient = None
         self.hass = hass
         self.callback_holder = dict[int, Future[Any]]()
+        self.device_resub = dict[str, Any]()
 
     def connect(self):
         """Connect to the MQTT broker."""
@@ -73,6 +74,7 @@ class MQTTClient:
         """Subscribe to a specific device's MQTT topic."""
         user_name = self.credentials.username
         topics = [f"/open/{user_name}/{sn}/{QUOTA_TOPIC_SUFFIX}", f"/open/{user_name}/{sn}/{COMMAND_REPLY_TOPIC_SUFFIX}"]
+        self.device_resub[sn] = 1
 
         def message_handler(client, userdata, message):
             dispatcher_send(self.hass, f"device_update_{sn}", message)
@@ -97,7 +99,11 @@ class MQTTClient:
 
     @callback
     def _on_connect(self, client, userdata, flags, rc):
-        _LOGGER.info("Ecoflow mqtt connected")
+        _LOGGER.info(f"Ecoflow mqtt connected {rc}")
+        if rc == 0:
+            sn_list = self.device_resub.keys()
+            for device_sn in sn_list:
+                self.subscribe_to_device(device_sn, "")
 
     @callback
     def on_connect_fail(self):
@@ -110,6 +116,8 @@ class MQTTClient:
     @callback
     def _on_disconnect(self, client, userdata, reasonCode):
         _LOGGER.info(f"I _on_disconnect {reasonCode}")
+        if reasonCode == 16:
+            self.__client.loop_start()
 
     @callback
     def _on_socket_closed(self, client, userdata, socket):
