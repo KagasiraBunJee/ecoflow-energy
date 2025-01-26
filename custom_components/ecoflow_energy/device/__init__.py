@@ -25,15 +25,28 @@ class EntityUpdateCoordinator(DataUpdateCoordinator):
         super().__init__(hass,
                          _LOGGER, name="Ecoflow update coordinator",
                          always_update=True,
-                        #  update_interval=timedelta(seconds=20),
+                         update_interval=timedelta(seconds=5),
         )
         self.device = device
+        self.last_update = self.current_milli_time()
+        self.fetch_interval_millis = 30000
+
+    def current_milli_time(self):
+        return round(time.time() * 1000)
+
+    def should_refetch(self) -> bool:
+        current_millis = self.current_milli_time()
+        last_millis = self.last_update
+        return (current_millis - last_millis) >= self.fetch_interval_millis
 
     async def async_added_to_hass(self):
         """Call when entity is added to hass."""
         await self.device.update_data()
 
     async def _async_update_data(self):
+        if self.should_refetch():
+            await self.device.update_data()
+            self.last_update = self.current_milli_time()
         return self.device.data
 
 @dataclass

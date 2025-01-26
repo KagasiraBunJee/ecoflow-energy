@@ -45,7 +45,7 @@ class BaseEntity(CoordinatorEntity[EntityUpdateCoordinator], Entity):
     def _handle_coordinator_update(self) -> None:
         values = self.get_value_from_db()
         self.set_entity_value(values.value)
-        super()._handle_coordinator_update()
+        self.async_write_ha_state()
 
 class BaseCommandEntity(BaseEntity):
     def __init__(self, device: BaseDevice, data_key) -> None:

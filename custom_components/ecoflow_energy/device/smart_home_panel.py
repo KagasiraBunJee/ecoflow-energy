@@ -103,7 +103,6 @@ class SmartHomePanel(BaseDevice):
 
             value_str = message.payload.decode("utf-8", errors='ignore')
             value = json.loads(value_str)
-            _LOGGER.info(f"sub resp: {value}")
             if topic_command_key != "set_reply":
                 if "params" in value:
                     params = value["params"]
@@ -117,7 +116,6 @@ class SmartHomePanel(BaseDevice):
                             self._parse_battery_info(heartbeat[mqtt_battery_info_key])
                     elif "cmdSet" in params and "id" in params: # handle mqtt set command response
                         pass
-                await self.coordinator.async_request_refresh()
         except UnicodeDecodeError as error:
             _LOGGER.warning(f"UnicodeDecodeError: {error}. Trying to load json.")
         except Exception as error:
@@ -225,7 +223,6 @@ class SmartHomePanel(BaseDevice):
     def _build_structure(self):
         if self.data.response_data is not None:
             local_data = self.data.response_data
-            _LOGGER.info(local_data)
 
             breakers_controls_info = local_data[http_breaker_ctrls_key]
             breaker_names_data = local_data["loadChInfo"]["info"]
