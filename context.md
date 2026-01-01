@@ -25,6 +25,13 @@
 - Added breaker current limit select (cmdSet=11, id=20, options 6/13/16/20/30).
 - Current limit select has unique_id and device_info.
 - Grid status sensor (non-diagnostic) added as `EntitySensorKey.GRID_STATUS`.
+- Added shared Portable Power Station base device for DELTA Pro and DELTA 2 Max.
+- Portable stations use cmdSet=32; AC/X-Boost switches use cmdSet=32 id=66.
+- Refactored Portable Power Station into base + per-family subclasses.
+- Extra battery support:
+  - Delta/Delta Pro/Delta Max/Delta 2 use `bmsSlave1/2.*`.
+  - Delta 2 Max uses `bms_slave_bmsSlaveStatus_*` and `bms_slave_bmsSlaveInfo_*`.
+- Added health + cycles diagnostic sensors for main and slave batteries.
 
 ## Files changed (high level)
 - `custom_components/ecoflow_energy/__init__.py`: MQTT-first setup; optional quota/all; client shutdown.
@@ -35,8 +42,12 @@
 - `custom_components/ecoflow_energy/select.py`: breaker mode + current limit select entities.
 - `custom_components/ecoflow_energy/switch.py`, `sensor.py`: use hass.data[DOMAIN]["devices"].
 - Removed `custom_components/ecoflow_energy/coordinator.py`.
+- `custom_components/ecoflow_energy/device/portable_power_station.py`: shared base device and sensors/switches for Delta units.
+- `custom_components/ecoflow_energy/api/ecoflow_client.py`: maps Delta variants to per-family classes.
 
 ## Sample data
 - `mqtt_quota_example_1.json`: heartbeat payload with `loadCmdChCtrlInfos` and `energyInfos`.
 - `mqtt_quota_example_breaker_power_usage.json`: `params.infoList` power readings.
 - `http_quota_all_example.json`: flattened keys like `heartbeat.loadCmdChCtrlInfos`.
+- `examples/delta_pro/http_quota_all_example_1.json`: Delta Pro HTTP quota/all sample (flat keys).
+- `examples/delta_pro/mqtt_quota_reply_example_2..5.json`: Delta Pro MQTT partial updates.

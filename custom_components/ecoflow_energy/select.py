@@ -114,3 +114,53 @@ class BreakerCurrentLimitSelect(BaseCommandEntity, SelectEntity):
         res = await self.send_command(command)
         if res:
             return
+
+
+class MappedSelectEntity(BaseCommandEntity, SelectEntity):
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(
+        self,
+        device: BaseDevice,
+        data_key: str,
+        name: str,
+        options_map: dict[str, int],
+        cmd_set: CommandSet,
+        cmd_id: CommandId,
+        param_key: str,
+    ) -> None:
+        self._select_name = name
+        self._options_map = options_map
+        self._param_key = param_key
+        self._cmd_set = cmd_set
+        self._cmd_id = cmd_id
+        self._attr_options = list(options_map.keys())
+        super().__init__(device, data_key)
+
+    def get_value_from_db(self) -> DataValue:
+        selects = self.device.data.mapped_data.get("selects", {})
+        if self.data_key not in selects:
+            return DataValue(self._select_name, None, True)
+        raw_value = selects[self.data_key].value
+        current_option = None
+        for label, option_value in self._options_map.items():
+            if option_value == raw_value:
+                current_option = label
+                break
+        return DataValue(self._select_name, current_option, True)
+
+    def set_entity_value(self, value: str):
+        self._attr_current_option = value
+
+    async def async_select_option(self, option: str) -> None:
+        if option not in self._options_map:
+            return
+        command = BaseEntityCommand(
+            self.device.sn,
+            self._cmd_set,
+            self._cmd_id,
+            {self._param_key: self._options_map[option]},
+        )
+        res = await self.send_command(command)
+        if res:
+            return

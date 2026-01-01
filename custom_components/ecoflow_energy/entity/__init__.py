@@ -35,6 +35,20 @@ class BaseEntity(CoordinatorEntity[EntityUpdateCoordinator], Entity):
             self._attr_entity_registry_enabled_default = visible
             self.entity_enabled = visible
 
+    @property
+    def device_info(self) -> DeviceInfo | None:
+        return DeviceInfo(
+            identifiers={(ECOFLOW_DOMAIN, f"{self.device.name}-{self.device.sn[-4:]}")},
+            manufacturer="EcoFlow",
+            name=self.device.name,
+            model=self.device.name,
+            serial_number=self.device.sn
+        )
+
+    @property
+    def unique_id(self):
+        return f"{self.device.sn}_{self._sensor_id}"
+
     def set_entity_value(self, value):
         pass
 

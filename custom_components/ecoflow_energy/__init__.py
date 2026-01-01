@@ -12,7 +12,8 @@ from .const import DOMAIN
 PLATFORMS = [
     Platform.SENSOR,
     Platform.SWITCH,
-    Platform.SELECT
+    Platform.SELECT,
+    Platform.NUMBER,
 ]
 
 _LOGGER = logging.getLogger(__name__)

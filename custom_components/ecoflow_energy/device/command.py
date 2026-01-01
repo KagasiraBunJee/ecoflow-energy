@@ -13,12 +13,27 @@ class CommandTarget(StrEnum):
 
 class CommandSet(IntEnum):
     COMMAND = 11
+    POWER_STATION = 32
 
 class CommandId(IntEnum):
     EPS = 24
     BAT_CTRL = 17
     BREAKER_CTRL = 16
     CURRENT_LIMIT = 20
+    AC_XBOOST = 66
+    BEEP = 38
+    DC_12V = 81
+    DC_CHARGE_CURRENT = 71
+    LCD_TIMEOUT = 39
+    STANDBY_MODE = 33
+    AC_TIMEOUT = 153
+    MAX_CHARGE_SOC = 49
+    MIN_DISCHARGE_SOC = 51
+    BACKUP_RESERVE = 94
+    GEN_AUTO_START = 52
+    GEN_AUTO_STOP = 53
+    AC_CHARGING_POWER = 69
+    AC_ALWAYS = 95
 
 @dataclass
 class BaseCommandV1:

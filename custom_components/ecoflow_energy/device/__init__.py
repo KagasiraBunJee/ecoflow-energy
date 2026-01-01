@@ -7,6 +7,7 @@ from typing import Any
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.components.select import SelectEntity
+from homeassistant.components.number import NumberEntity
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -82,6 +83,9 @@ class BaseDevice:
         return []
 
     def selects(self) -> list[SelectEntity]:
+        return []
+
+    def numbers(self) -> list[NumberEntity]:
         return []
 
     async def connect_mqtt(self, hass):

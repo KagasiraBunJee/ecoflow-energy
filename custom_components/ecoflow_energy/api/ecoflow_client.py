@@ -8,6 +8,7 @@ from .http_client import EcoFlowHttpClient
 from .ecoflow_mqtt import MQTTClient, EcoflowMqttInfo
 from ..device.command import CommandTarget
 from ..device.smart_home_panel import SmartHomePanel
+from ..device.portable_power_station import Delta2MaxStation, DeltaProFamilyStation
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -48,6 +49,24 @@ class EcoFlowApiClient:
                 if product_name == "Smart Home Panel":
                     devices_data.append(
                         SmartHomePanel(
+                            sn=device["sn"],
+                            name=product_name,
+                            status=device.get("online", 0),
+                            api_client=self,
+                        )
+                    )
+                elif product_name in {"DELTA 2 Max"}:
+                    devices_data.append(
+                        Delta2MaxStation(
+                            sn=device["sn"],
+                            name=product_name,
+                            status=device.get("online", 0),
+                            api_client=self,
+                        )
+                    )
+                elif product_name in {"DELTA Pro", "DELTA", "DELTA Max", "DELTA 2"}:
+                    devices_data.append(
+                        DeltaProFamilyStation(
                             sn=device["sn"],
                             name=product_name,
                             status=device.get("online", 0),

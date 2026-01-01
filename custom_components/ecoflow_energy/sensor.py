@@ -1,6 +1,16 @@
 import logging
 from homeassistant.components.sensor.const import SensorDeviceClass, SensorStateClass
-from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfElectricCurrent, UnitOfPower, UnitOfTemperature, UnitOfTime
+from homeassistant.const import (
+    PERCENTAGE,
+    EntityCategory,
+    UnitOfElectricCurrent,
+    UnitOfElectricPotential,
+    UnitOfEnergy,
+    UnitOfFrequency,
+    UnitOfPower,
+    UnitOfTemperature,
+    UnitOfTime,
+)
 from .entity import BaseSensor
 
 from .const import DOMAIN
@@ -48,6 +58,13 @@ class LevelSensorEntity(BaseSensor):
 class InfoSensor(BaseSensor):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
+class BoolSensorEntity(BaseSensor):
+    def set_entity_value(self, value):
+        if value is None:
+            self._attr_native_value = None
+            return
+        self._attr_native_value = bool(value)
+
 class AmpSensorEntity(BaseSensor):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_device_class = SensorDeviceClass.CURRENT
@@ -60,4 +77,35 @@ class TempSensorEntity(BaseSensor):
     _attr_device_class = SensorDeviceClass.TEMPERATURE
     _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
     _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_value = 0
+
+class MilliVoltSensorEntity(BaseSensor):
+    _attr_device_class = SensorDeviceClass.VOLTAGE
+    _attr_native_unit_of_measurement = UnitOfElectricPotential.MILLIVOLT
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_value = 0
+
+class MilliAmpSensorEntity(BaseSensor):
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_device_class = SensorDeviceClass.CURRENT
+    _attr_native_unit_of_measurement = UnitOfElectricCurrent.MILLIAMPERE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_value = 0
+
+class EnergySensorEntity(BaseSensor):
+    _attr_device_class = SensorDeviceClass.ENERGY
+    _attr_native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_native_value = 0
+
+class FrequencySensorEntity(BaseSensor):
+    _attr_device_class = SensorDeviceClass.FREQUENCY
+    _attr_native_unit_of_measurement = UnitOfFrequency.HERTZ
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_value = 0
+
+class CapacitySensorEntity(BaseSensor):
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = "mAh"
     _attr_native_value = 0

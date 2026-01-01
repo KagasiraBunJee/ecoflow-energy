@@ -20,13 +20,24 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 class EnableSwitch(BaseSwitch):
     _attr_entity_category = EntityCategory.CONFIG
 
-    def __init__(self, device: BaseDevice, data_key, cmd_set, cmd_id, args_on: dict, args_off: dict) -> None:
+    def __init__(
+        self,
+        device: BaseDevice,
+        data_key,
+        cmd_set,
+        cmd_id,
+        args_on: dict,
+        args_off: dict,
+        icon: str | None = None,
+    ) -> None:
         super().__init__(device, data_key)
         _LOGGER.info("init eps switch")
         self.cmd_set = cmd_set
         self.cmd_id = cmd_id
         self.args_on = args_on
         self.args_off = args_off
+        if icon:
+            self._attr_icon = icon
 
     async def switch(self, status: bool):
         cmdSet = CommandSet(self.cmd_set)
