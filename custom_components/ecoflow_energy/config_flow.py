@@ -23,12 +23,15 @@ class EcoflowEnergyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             secret = user_input["secret"]
 
             client = EcoFlowApiClient(apikey, secret, None)
-            mqtt_info = await client.login()
-            if mqtt_info:
-                data = { "keys": user_input, "creds": mqtt_info }
-                _LOGGER.info("Load from config")
-                return self.async_create_entry(title="Ecoflow Energy", data=data)
-            else:
+            try:
+                mqtt_info = await client.login()
+                if mqtt_info:
+                    data = { "keys": user_input, "creds": mqtt_info }
+                    _LOGGER.info("Load from config")
+                    return self.async_create_entry(title="Ecoflow Energy", data=data)
                 errors["base"] = "Wrong credentials"
+            except Exception as error:
+                _LOGGER.warning("Login failed: %s", error)
+                errors["base"] = "cannot_connect"
 
         return self.async_show_form(step_id="user", data_schema=vol.Schema(data_schema), errors=errors)

@@ -18,6 +18,7 @@ class CommandId(IntEnum):
     EPS = 24
     BAT_CTRL = 17
     BREAKER_CTRL = 16
+    CURRENT_LIMIT = 20
 
 @dataclass
 class BaseCommandV1:

@@ -2,17 +2,12 @@ from __future__ import annotations
 
 import logging
 import secrets
-from dataclasses import dataclass
-from typing import Any
-
-from dacite import from_dict
+from typing import Any, Callable, Awaitable
 
 from .http_client import EcoFlowHttpClient
-
-from ..device.smart_home_panel import SmartHomePanel
-from ..device.command import CommandTarget
-
 from .ecoflow_mqtt import MQTTClient, EcoflowMqttInfo
+from ..device.command import CommandTarget
+from ..device.smart_home_panel import SmartHomePanel
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -21,22 +16,7 @@ MQTT_DATA = "iot-open/sign/certification"
 QUOTA_ALL = "iot-open/sign/device/quota/all"
 QUOTA = "iot-open/sign/device/quota"
 
-@dataclass
-class DeviceData:
-    sn: str
-    name: str
-    device_type: str
-
-
-class DeviceData:
-    mqtt_quota_data: dict[str, Any]
-    mqtt_status_data: dict[str, Any]
-    mqtt_set_reply_data: dict[str, Any]
-
-    def __init__(self):
-        self.mqtt_quota_data = {}
-        self.mqtt_status_data = {}
-        self.mqtt_set_reply_data = {}
+MessageCallback = Callable[[str, str, dict[str, Any]], Awaitable[None] | None]
 
 
 class EcoFlowApiClient:
@@ -44,7 +24,6 @@ class EcoFlowApiClient:
         self.client = EcoFlowHttpClient(access_key, secret)
         self.mqtt_info: EcoflowMqttInfo
         self.mqtt_client: MQTTClient = None
-        self.mqtt_data = dict[str, DeviceData]()
         self.hass = hass
 
     async def login(self) -> dict:
@@ -57,27 +36,33 @@ class EcoFlowApiClient:
         creds["port"] = int(creds["port"])
         self.__fill_mqtt_data(creds)
 
-    def start(self):
-        self._init_mqtt()
+    def start(self, message_callback: MessageCallback | None = None):
+        self._init_mqtt(message_callback)
 
     async def devices_list(self):
         try:
             resp = await self.client.get_data(DEVICE_LIST)
             devices_data = []
             for device in resp["data"]:
-                productName = device["productName"]
-                if productName == "Smart Home Panel":
+                product_name = device.get("productName") or device.get("deviceName")
+                if product_name == "Smart Home Panel":
                     devices_data.append(
-                        SmartHomePanel(sn=device["sn"], name=productName, status=device["online"], api_client=self)
+                        SmartHomePanel(
+                            sn=device["sn"],
+                            name=product_name,
+                            status=device.get("online", 0),
+                            api_client=self,
+                        )
                     )
                 else:
-                    _LOGGER.warning(f"Not supported {productName}")
+                    _LOGGER.warning("Not supported device: %s", product_name)
             return devices_data
         except Exception as error:
-            _LOGGER.error(f"Error getting devices list {error}")
+            _LOGGER.error("Error getting devices list %s", error)
+            return []
 
-    def _init_mqtt(self):
-        self.mqtt_client = MQTTClient(self.mqtt_info, self.hass)
+    def _init_mqtt(self, message_callback: MessageCallback | None = None):
+        self.mqtt_client = MQTTClient(self.mqtt_info, self.hass, message_callback)
         self.mqtt_client.connect()
 
     def __send_mqtt_command(self, sn, params) -> bool:
@@ -102,7 +87,18 @@ class EcoFlowApiClient:
             resp = await self.client.get_data(QUOTA_ALL, {"sn": sn})
             return resp["data"]
         except Exception as error:
-            _LOGGER.error(f"Error getting device {sn} info: {error}")
+            _LOGGER.error("Error getting device %s info: %s", sn, error)
+            return None
+
+    def subscribe(self, sn: str):
+        if self.mqtt_client is None:
+            return
+        self.mqtt_client.subscribe_to_device(sn, "quota")
+
+    def shutdown(self):
+        if self.mqtt_client is None:
+            return
+        self.mqtt_client.disconnect()
 
     def __client_id(self):
         return f"energy_mqttx_{secrets.token_hex(4)}"

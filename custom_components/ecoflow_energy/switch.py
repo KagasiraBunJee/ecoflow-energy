@@ -1,6 +1,5 @@
 import logging
 
-from .coordinator import EcoflowCoordinatorDataUpdateCoordinator
 from .device import BaseDevice
 from homeassistant.const import EntityCategory
 from .entity import BaseSwitch
@@ -11,11 +10,10 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    coordinator: EcoflowCoordinatorDataUpdateCoordinator = hass.data[DOMAIN]["coordinator"]
     _LOGGER.info("Init switches")
     entities = []
 
-    for device in coordinator.data:
+    for device in hass.data[DOMAIN]["devices"]:
         entities.extend(device.switches())
     async_add_entities(entities)
 

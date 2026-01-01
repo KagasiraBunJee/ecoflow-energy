@@ -1,20 +1,17 @@
 import logging
-from typing import Any
 from homeassistant.components.sensor.const import SensorDeviceClass, SensorStateClass
-from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfElectricCurrent, UnitOfEnergy, UnitOfPower, UnitOfTemperature, UnitOfTime
-from .entity import BaseSensor, BaseSwitch
+from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfElectricCurrent, UnitOfPower, UnitOfTemperature, UnitOfTime
+from .entity import BaseSensor
 
-from .coordinator import EcoflowCoordinatorDataUpdateCoordinator
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    coordinator: EcoflowCoordinatorDataUpdateCoordinator = hass.data[DOMAIN]["coordinator"]
     _LOGGER.info("Init sensors")
     entities = []
 
-    for device in coordinator.data:
+    for device in hass.data[DOMAIN]["devices"]:
         entities.extend(device._sensors())
     async_add_entities(entities)
 
@@ -25,6 +22,7 @@ class RemainSensorEntity(BaseSensor):
     _attr_native_value = 0
 
     def set_entity_value(self, value):
+        value = value if value is not None else 0
         self._attr_native_value = round(value)
 
 class WattsSensorEntity(BaseSensor):
@@ -34,6 +32,7 @@ class WattsSensorEntity(BaseSensor):
     _attr_native_value = 0
 
     def set_entity_value(self, value):
+        value = value if value is not None else 0
         self._attr_native_value = round(value)
 
     def value(self, value):

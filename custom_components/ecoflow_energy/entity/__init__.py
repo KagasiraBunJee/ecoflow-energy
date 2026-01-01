@@ -1,8 +1,7 @@
 from collections import OrderedDict
-from datetime import timedelta
 from collections.abc import Mapping
 import logging
-from typing import Any, Self
+from typing import Any
 
 from ..device.breaker import BreakerMode
 from ..device.command import BaseEntityCommand, CommandTarget
@@ -38,6 +37,12 @@ class BaseEntity(CoordinatorEntity[EntityUpdateCoordinator], Entity):
 
     def set_entity_value(self, value):
         pass
+
+    def _safe_value(self, kind: str, key: str, default_name: str) -> DataValue:
+        data = self.device.data.mapped_data.get(kind, {})
+        if key in data:
+            return data[key]
+        return DataValue(default_name, None, False)
 
     def get_value_from_db(self) -> DataValue:
         return None
@@ -83,12 +88,13 @@ class BaseSwitch(BaseCommandEntity, SwitchEntity):
         return f"{self.device.sn}_{self._sensor_id}"
 
     def get_value_from_db(self) -> DataValue:
-        return self.device.data.mapped_data["switches"][self.data_key]
+        return self._safe_value("switches", self.data_key, self.data_key)
 
     def set_entity_value(self, value):
         self._attr_is_on = value
-        values = self.device.data.mapped_data["switches"][self.data_key]
+        values = self._safe_value("switches", self.data_key, self.data_key)
         values.value = value
+        self.device.data.mapped_data.setdefault("switches", {})[self.data_key] = values
 
 class BaseSensor(BaseEntity, SensorEntity):
     def __init__(self, device: BaseDevice, data_key) -> None:
@@ -121,7 +127,7 @@ class BaseSensor(BaseEntity, SensorEntity):
         self._attr_native_value = value
 
     def get_value_from_db(self) -> DataValue:
-        return self.device.data.mapped_data["sensors"][self.data_key]
+        return self._safe_value("sensors", self.data_key, self.data_key)
 
 class BreakerSelect(BaseCommandEntity, SelectEntity):
     def __init__(self, device: BaseDevice, data_key, index: int, mode_key: str, source_key: str) -> None:
@@ -156,7 +162,12 @@ class BreakerSelect(BaseCommandEntity, SelectEntity):
         self._attr_current_option = value
 
     def get_value_from_db(self) -> DataValue:
-        ctrl = self.device.data.mapped_data["sensors"][self.mode_key].value
-        sta = self.device.data.mapped_data["sensors"][self.source_key].value
+        sensor_dict = self.device.data.mapped_data.get("sensors", {})
+        ctrl = -1
+        sta = -1
+        if self.mode_key in sensor_dict:
+            ctrl = sensor_dict[self.mode_key].value
+        if self.source_key in sensor_dict:
+            sta = sensor_dict[self.source_key].value
         new_value = self.breaker_options.get_action_name(ctrl, sta)
         return DataValue(f"Breaker {self.breaker_index + 1} mode select", new_value, True)

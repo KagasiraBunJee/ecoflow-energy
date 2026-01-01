@@ -1,7 +1,5 @@
 import logging
-import time
 
-from datetime import timedelta
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
@@ -18,35 +16,20 @@ class EntitySensorKey(StrEnum):
     SHP_GRID = "shp_grid"
     BATTERIES_COUNT = "batteries_count"
     BATTERY = "battery_"
+    GRID_STATUS = "grid_status"
 
 class EntityUpdateCoordinator(DataUpdateCoordinator):
     def __init__(self, hass, device) -> None:
         """Initialize the coordinator."""
-        super().__init__(hass,
-                         _LOGGER, name="Ecoflow update coordinator",
-                         always_update=True,
-                         update_interval=timedelta(seconds=5),
+        super().__init__(
+            hass,
+            _LOGGER,
+            name="Ecoflow update coordinator",
+            update_interval=None,
         )
         self.device = device
-        self.last_update = self.current_milli_time()
-        self.fetch_interval_millis = 30000
-
-    def current_milli_time(self):
-        return round(time.time() * 1000)
-
-    def should_refetch(self) -> bool:
-        current_millis = self.current_milli_time()
-        last_millis = self.last_update
-        return (current_millis - last_millis) >= self.fetch_interval_millis
-
-    async def async_added_to_hass(self):
-        """Call when entity is added to hass."""
-        await self.device.update_data()
 
     async def _async_update_data(self):
-        if self.should_refetch():
-            await self.device.update_data()
-            self.last_update = self.current_milli_time()
         return self.device.data
 
 @dataclass
@@ -82,12 +65,6 @@ class DataHolder:
 
         self.last_update = 0
 
-    def current_milli_time() -> float:
-        return round(time.time() * 1000)
-
-    def updated(self):
-        self.last_update = self.current_milli_time()
-
 class BaseDevice:
     def __init__(self, sn: str, name: str, status: int, api_client) -> None:
         self.sn = sn
@@ -121,6 +98,14 @@ class BaseDevice:
     def calculate_data(self):
         pass
 
-    async def update_data(self):
-        self.data.response_data = await self.api_client.get_device_info(self.sn)
+    def notify_updated(self):
+        if self.coordinator is None:
+            return
+        self.coordinator.async_set_updated_data(self.data)
+
+    async def apply_quota_all(self, data: dict[str, Any]):
+        self.data.response_data = data
         self.calculate_data()
+
+    async def handle_mqtt_params(self, params: dict[str, Any]):
+        pass
