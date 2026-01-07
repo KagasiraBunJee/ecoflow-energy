@@ -70,6 +70,7 @@ class PowerType(IntEnum):
     GRID = 0
     BATTERY = 1
     OFF = 2
+    UNAVAILABLE = 3
 
     def is_grid(self):
         return self == PowerType.GRID
