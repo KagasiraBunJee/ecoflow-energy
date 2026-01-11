@@ -149,7 +149,10 @@ class SmartHomePanel(BaseDevice):
         if battery_infos:
             self._parse_battery_info(battery_infos)
 
-        grid_status = heartbeat.get("gridSta") or params.get("gridSta")
+        if "gridSta" in heartbeat:
+            grid_status = heartbeat.get("gridSta")
+        else:
+            grid_status = params.get("gridSta")
         if grid_status is not None:
             self._parse_grid_status(grid_status)
 
