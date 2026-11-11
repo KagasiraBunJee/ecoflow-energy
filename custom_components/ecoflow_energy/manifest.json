@@ -12,7 +12,6 @@
     "dependencies": ["mqtt"],
     "documentation": "https://github.com/KagasiraBunJee/ecoflow-energy",
     "requirements": [
-      "paho-mqtt==1.6.1",
       "protobuf>=4.23.0",
       "jsonpath-ng>=1.6.1",
       "dacite==1.8.1"

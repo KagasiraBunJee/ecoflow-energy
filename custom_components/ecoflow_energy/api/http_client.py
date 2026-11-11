@@ -11,11 +11,6 @@ from typing import Any
 
 import aiohttp
 from aiohttp import ClientResponse
-
-logging.basicConfig(
-    level=logging.INFO,  # Set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",  # Log format
-)
 _LOGGER = logging.getLogger(__name__)
 BASE_URI = "https://api-e.ecoflow.com/"
 
